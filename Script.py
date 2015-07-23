@@ -174,6 +174,29 @@ def GetSentiment(line):
 	return Sentiment
 
 
+def SearchGoogle(query)	:
+# Source: http://stackoverflow.com/questions/3898574/google-search-using-python-script
+import requests
+import json
+
+#query = "cats+dogs"
+
+#NB. add 'start=3' to the query string to move to later results
+r = requests.get('http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=' + query)
+
+# JSON object
+theJson = r.content
+theObject = json.loads(theJson)
+
+# Print it all out
+Response = []
+for index,result in enumerate(theObject['responseData']['results']):
+    print str(index+1) + ") " + result['titleNoFormatting']
+    print result['url']
+	Response.append([result['url'], result['titleNoFormatting']])
+return 	Response
+
+	
 def SaveToFile(Index, Content):
     Content = Content.replace("\"", "\'")
     Details = Content.split("class=\'breadcrumbs\'")[1].split(">")[1:14]
