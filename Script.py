@@ -175,26 +175,26 @@ def GetSentiment(line):
 
 
 def SearchGoogle(query)	:
-# Source: http://stackoverflow.com/questions/3898574/google-search-using-python-script
-import requests
-import json
+	# Source: http://stackoverflow.com/questions/3898574/google-search-using-python-script
+	import requests
+	import json
 
-#query = "cats+dogs"
+	#query = "cats+dogs"
 
-#NB. add 'start=3' to the query string to move to later results
-r = requests.get('http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=' + query)
+	#NB. add 'start=3' to the query string to move to later results
+	r = requests.get('http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=' + query)
 
-# JSON object
-theJson = r.content
-theObject = json.loads(theJson)
+	# JSON object
+	theJson = r.content
+	theObject = json.loads(theJson)
 
-# Print it all out
-Response = []
-for index,result in enumerate(theObject['responseData']['results']):
-    print str(index+1) + ") " + result['titleNoFormatting']
-    print result['url']
-	Response.append([result['url'], result['titleNoFormatting']])
-return 	Response
+	# Print it all out
+	Response = []
+	for index,result in enumerate(theObject['responseData']['results']):
+		print str(index+1) + ") " + result['titleNoFormatting']
+		print result['url']
+		Response.append([result['url'], result['titleNoFormatting']])
+	return 	Response
 
 	
 def SaveToFile(Index, Content):
@@ -222,7 +222,8 @@ def SaveToFile(Index, Content):
     print PostedTimeon
     print TotalComments
     print Comment
-    Mood = GetSentiment(Comment)
+    CommentMood = GetSentiment(Comment)
+    TitleMood = GetSentiment(Title)
     print NextLink
     
     Comment = Comment.replace("\"","\\\"")
@@ -231,15 +232,21 @@ def SaveToFile(Index, Content):
     File = open("Output.csv","a+")
     File.write("Index,Forum,Title,AuthorName,TotalComments,NextLink,PostedTimeon,Comment\n")
     #Index = 1
-    File.write(str(Index)+",\"" + Forum +"\",\"" + Title +"\",\"" + AuthorName +"\",\"" + str(TotalComments)  +"\",\"" + NextLink  +"\",\"" + PostedTimeon  +"\",\""+ Mood + "\",\"" + Comment  +"\"")
+    File.write(str(Index)+",\"" + Forum +"\",\"" + Title +"\",\"" + AuthorName +"\",\"" + str(TotalComments)  +"\",\"" + NextLink  +"\",\"" + PostedTimeon  +"\",\""+ CommentMood + "\",\"" + TitleMood + "\",\"" + Comment  +"\"")
     File.close()
     
     return NextLink
     
 if(1):    
     import urllib2
-    #url = 'http://www.dslreports.com/forum/r30174874-Channels-Fox-Channels-now-Copyright-flag'
-    url = 'http://www.dslreports.com/forum/r30177321-XG2-trials-have-started'
+	
+    File = open("Output.csv","w")
+    File.write("Index,Forum,Title,AuthorName,TotalComments,NextLink,PostedTimeon,Title Mood, Comments Mood,Comment\n")
+    File.close()
+    #Index = 1
+	
+    url = 'http://www.dslreports.com/forum/r30174874-Channels-Fox-Channels-now-Copyright-flag'
+    #url = 'http://www.dslreports.com/forum/r30177321-XG2-trials-have-started'
     for i in range(100):
         print "============>Parsing" + url
         response = urllib2.urlopen(url)
