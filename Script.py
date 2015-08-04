@@ -173,6 +173,7 @@ def GetSentiment(line):
 	print "================================================================"
 	return Sentiment
 
+	
 
 def SearchGoogle(query)	:
 	# Source: http://stackoverflow.com/questions/3898574/google-search-using-python-script
@@ -197,11 +198,11 @@ def SearchGoogle(query)	:
 	return 	Response
 
 	
-def SaveToFile(Index, Content):
+def SaveToFile(Index, Content, FileName):
     Content = Content.replace("\"", "\'")
     Details = Content.split("class=\'breadcrumbs\'")[1].split(">")[1:14]
     Forum   = Details[1] + ">" + Details [4] + ">" + Details[6] + ">" + Details[8]
-    Title = Details[11]
+    Title = Details[10] #+ str(Details[11])
     AuthorName = Content.split("class=\'authorName \'")[1].split(">")[3]
     TotalComments = len(Content.replace("<br>","").split("class=\'postTimestamp \'"))
     
@@ -229,27 +230,108 @@ def SaveToFile(Index, Content):
     Comment = Comment.replace("\"","\\\"")
     #Comment = "Comments"
     
-    File = open("Output.csv","a+")
-    File.write("Index,Forum,Title,AuthorName,TotalComments,NextLink,PostedTimeon,Comment\n")
+    File = open(FileName,"a+")
     #Index = 1
     File.write(str(Index)+",\"" + Forum +"\",\"" + Title +"\",\"" + AuthorName +"\",\"" + str(TotalComments)  +"\",\"" + NextLink  +"\",\"" + PostedTimeon  +"\",\""+ CommentMood + "\",\"" + TitleMood + "\",\"" + Comment  +"\"")
     File.close()
     
     return NextLink
-    
-if(1):    
-    import urllib2
+   
 	
-    File = open("Output.csv","w")
+def ParseContent(Index, Content, FileName):
+    Content = Content.replace("\"", "\'")
+    Details = Content.split("class=\'breadcrumbs\'")[1].split(">")[1:14]
+    Forum   = Details[1] + ">" + Details [4] + ">" + Details[6] + ">" + Details[8]
+    Title = Details[10] #+ str(Details[11])
+    AuthorName = Content.split("class=\'authorName \'")[1].split(">")[3]
+    TotalComments = len(Content.replace("<br>","").split("class=\'postTimestamp \'"))
+    
+    NextLink = Content.split("&laquo;")[0].split("<")[-1]
+    PostedTimeon = Content.split("class=\'postTimestamp \'")[1].split(">")[1]
+    
+    Forum = Forum.replace("</A","")
+    Title = Title.replace("</A","")
+    AuthorName = AuthorName.replace("</A","")
+    PostedTimeon = PostedTimeon.replace("</A","")
+    NextLink = r"http://www.dslreports.com/"+ NextLink.replace("</A","").replace("A HREF='","").replace("\'>","")
+    PostedTimeon = PostedTimeon.replace("</p","")
+    Comment = Content.replace("<br>","").split("class=\'postTimestamp \'")[1].split("</div></TD></TR><TR><TD")[0].split(">")[-1]
+    
+    print "Forum:",Forum
+    print "Title:",Title
+    print "AuthorName:",AuthorName
+    print "PostedTimeon:",PostedTimeon
+    print "TotalComments:",TotalComments
+    print "Comment:",Comment
+    CommentMood = GetSentiment(Comment)
+    TitleMood = GetSentiment(Title)
+    print NextLink
+    
+    Comment = Comment.replace("\"","\\\"")
+    #Comment = "Comments"
+    
+    File = open(FileName,"a+")
+    #Index = 1
+    File.write(str(Index)+",\"" + Forum +"\",\"" + Title +"\",\"" + AuthorName +"\",\"" + str(TotalComments)  +"\",\"" + NextLink  +"\",\"" + PostedTimeon  +"\",\""+ CommentMood + "\",\"" + TitleMood + "\",\"" + Comment  +"\"")
+    File.close()
+    
+    return NextLink
+   
+File = open("Output_Generarated.csv","w")
+File.write("Index, Sentiment, Comments \n")
+File.close()   
+
+FileContent = open("Input.txt", "r").read().splitlines()
+
+File = open("Output_Generarated.csv","a")
+  
+Index = 0
+for line in FileContent:
+	Sentiment = GetSentiment(line)
+	Index = Index + 1
+	File.write(str(Index) + "," + str(Sentiment) + "," + str(line) + "\n")
+	
+	#Pause = input("Enter any key...")
+	#time.sleep(15)
+File.close()
+   
+if(0):    
+    import urllib2
+
+    urllib2.install_opener(
+        urllib2.build_opener(
+            urllib2.ProxyHandler({'http': 'proxy.ebiz.verizon.com'})
+        )
+    )	
+    File = open("Output_c.csv","w")
     File.write("Index,Forum,Title,AuthorName,TotalComments,NextLink,PostedTimeon,Title Mood, Comments Mood,Comment\n")
     File.close()
     #Index = 1
 	
     url = 'http://www.dslreports.com/forum/r30174874-Channels-Fox-Channels-now-Copyright-flag'
-    #url = 'http://www.dslreports.com/forum/r30177321-XG2-trials-have-started'
+    
+    for i in range(100):
+        print "============>Parsing" + url
+        response = urllib2.urlopen(url)
+        html = response.read()  
+        fh = open("./Comcast/File_"+str(i) + ".html", "w")
+        fh.write(html)
+        fh.close()
+        url = SaveToFile(i+1,html, "Output_c.csv")
+        time.sleep(1)    
+		
+    File = open("Output_v.csv","w")
+    File.write("Index,Forum,Title,AuthorName,TotalComments,NextLink,PostedTimeon,Title Mood, Comments Mood,Comment\n")
+    File.close()
+	
+    url = 'http://www.dslreports.com/forum/r30177321-XG2-trials-have-started'
+	
     for i in range(100):
         print "============>Parsing" + url
         response = urllib2.urlopen(url)
         html = response.read()    
-        url = SaveToFile(i+1,html)
-        time.sleep(1)    
+        fh = open("./Verizon/File_"+str(i) + ".html", "w")
+        fh.write(html)
+        fh.close()		
+        url = SaveToFile(i+1,html, "Output_v.csv")
+        time.sleep(1)  		
